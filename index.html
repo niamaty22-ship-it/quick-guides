@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Study Tips Hub — Fun Learning</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; transition: background 0.5s; }
+  header { background: #4caf50; color: white; padding: 20px; text-align: center; font-size: 2em; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  main { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+  .exercise, .welcome { background: #fff; padding: 20px; margin: 20px 0; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 90%; max-width: 600px; text-align:center; }
+  .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .option { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+  .option:hover { background-color: #f0f0f0; }
+  .correct { background-color: #c8e6c9 !important; }
+  .wrong { background-color: #ffcdd2 !important; }
+  .feedback { margin-top: 10px; font-weight: bold; font-size: 1.1em; transition: all 0.3s; }
+  .tip { background: #e0f7fa; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; }
+  button { padding: 10px 20px; margin-top: 15px; border: none; border-radius: 8px; background: #4caf50; color: white; font-size: 1em; cursor: pointer; transition: all 0.2s; }
+  button:hover { background: #45a049; }
+  #nextBtn:disabled { background: #a5d6a7; cursor: not-allowed; }
+  .progress { margin-top: 10px; font-size: 0.9em; color: #555; }
+  .badge { font-size: 3em; margin-top: 10px; animation: pop 0.6s; }
+  @keyframes pop { 0% {transform: scale(0);} 50% {transform: scale(1.4);} 100% { transform: scale(1);} }
+  .confetti-piece { position: absolute; width: 10px; height: 10px; background: red; animation: confetti 1s linear forwards; }
+  @keyframes confetti { 0% {opacity:1; transform: translateY(0) rotate(0deg);} 100% {opacity:0; transform: translateY(200px) rotate(360deg);} }
+</style>
+</head>
+<body>
+<header>🎓 Study Tips Hub</header>
+<main id="main">
+  <div class="welcome">
+    <h1>Welcome to Study Tips Hub!</h1>
+    <p>Learn, play, and master your favorite subjects while having fun. Choose a subject to start your journey!</p>
+    <button onclick="startSubject('biology')">Biology 🌱</button>
+    <button onclick="startSubject('chemistry')">Chemistry ⚗️</button>
+    <button onclick="startSubject('math')">Math ➗</button>
+  </div>
+</main>
+
+<script>
+// Questions per subject per level (5 levels, 5–6 questions each)
+const questions = {
+  biology: {
+    1: [
+      { q:"What is the basic unit of life?", options:["Molecule","Atom","Cell","Organ"], answer:2, tip:"All living things are made of cells.", info:"The cell is the smallest unit that can carry out life processes." },
+      { q:"Which organelle is responsible for photosynthesis?", options:["Mitochondria","Nucleus","Chloroplast","Ribosome"], answer:2, tip:"Look for chlorophyll.", info:"Chloroplasts capture light energy and convert it into glucose." },
+      { q:"Process water moves through a semi-permeable membrane?", options:["Active transport","Osmosis","Diffusion","Endocytosis"], answer:1, tip:"It’s specific to water.", info:"Osmosis is diffusion of water across a membrane." },
+      { q:"Which organelle produces ATP?", options:["Ribosome","Nucleus","Mitochondria","Golgi"], answer:2, tip:"Powerhouse of the cell.", info:"Mitochondria convert nutrients into energy (ATP)." },
+      { q:"Which organelle contains DNA?", options:["Nucleus","Mitochondria","Ribosome","Golgi"], answer:0, tip:"Controls cell functions.", info:"The nucleus contains the cell's genetic material." }
+    ],
+    2: [
+      { q:"Programmed cell death is called?", options:["Mitosis","Necrosis","Apoptosis","Fusion"], answer:2, tip:"Controlled process.", info:"Apoptosis is programmed cell death." },
+      { q:"Cell membrane controls what?", options:["Energy","Transport","DNA","Ribosomes"], answer:1, tip:"It's outer layer.", info:"The cell membrane regulates entry and exit." },
+      { q:"Organelle that packages proteins?", options:["Ribosome","Golgi","Chloroplast","Lysosome"], answer:1, tip:"Like post office.", info:"Golgi apparatus modifies and packages proteins." },
+      { q:"Cytokinesis is?", options:["DNA replication","Cell split","Protein synthesis","Photosynthesis"], answer:1, tip:"Final split.", info:"Cytokinesis divides the cytoplasm into two cells." },
+      { q:"Nucleolus function?", options:["DNA replication","Ribosome production","Energy generation","Transport"], answer:1, tip:"Inside nucleus.", info:"Nucleolus makes ribosomal subunits." }
+    ],
+    3: [
+      { q:"Which macromolecule stores genetic info?", options:["Carbohydrates","Lipids","Proteins","DNA"], answer:3, tip:"Found in nucleus.", info:"DNA stores genetic information." },
+      { q:"Which molecule carries energy?", options:["DNA","ATP","Glucose","Protein"], answer:1, tip:"Energy currency.", info:"ATP stores and transfers energy in cells." },
+      { q:"Which blood cells fight infection?", options:["Red","White","Platelets","Plasma"], answer:1, tip:"Immune system.", info:"White blood cells fight pathogens." },
+      { q:"Which process produces gametes?", options:["Mitosis","Meiosis","Binary fission","Fertilization"], answer:1, tip:"Reduction division.", info:"Meiosis produces gametes with half chromosomes." },
+      { q:"Enzyme function?", options:["Speed up reactions","Store energy","Transport proteins","Provide structure"], answer:0, tip:"Catalysts.", info:"Enzymes speed up chemical reactions." }
+    ],
+    4: [
+      { q:"Which biomolecule forms cell membranes?", options:["Proteins","Lipids","Carbs","DNA"], answer:1, tip:"Hydrophobic tails.", info:"Phospholipids form cell membranes." },
+      { q:"Which organelle breaks down waste?", options:["Lysosome","Ribosome","Nucleus","Golgi"], answer:0, tip:"Digestive enzymes.", info:"Lysosomes contain enzymes that digest cellular waste." },
+      { q:"Which structure holds chromosomes?", options:["Nucleus","Cytoplasm","Mitochondria","Golgi"], answer:0, tip:"Control center.", info:"Nucleus contains chromosomes." },
+      { q:"Which process converts glucose to ATP?", options:["Photosynthesis","Respiration","Fermentation","Osmosis"], answer:1, tip:"Breakdown of sugars.", info:"Cellular respiration converts glucose to ATP." },
+      { q:"Which type of tissue transmits impulses?", options:["Muscle","Epithelial","Nervous","Connective"], answer:2, tip:"Brain and nerves.", info:"Nervous tissue transmits electrical impulses." }
+    ],
+    5: [
+      { q:"DNA is made of?", options:["Amino acids","Nucleotides","Sugars","Fatty acids"], answer:1, tip:"Four bases.", info:"DNA is composed of nucleotides (A,T,C,G)." },
+      { q:"Which organelle detoxifies chemicals?", options:["Lysosome","Peroxisome","Ribosome","Mitochondria"], answer:1, tip:"Small enzyme vesicle.", info:"Peroxisomes break down toxins." },
+      { q:"Which hormone regulates blood sugar?", options:["Insulin","Adrenaline","Thyroxine","Cortisol"], answer:0, tip:"Pancreas hormone.", info:"Insulin lowers blood sugar levels." },
+      { q:"Which macromolecule stores energy long-term?", options:["Carbs","Lipids","Proteins","Nucleic acids"], answer:1, tip:"Fats.", info:"Lipids store energy for long-term use." },
+      { q:"Which process maintains internal balance?", options:["Homeostasis","Osmosis","Photosynthesis","Metabolism"], answer:0, tip:"Stability.", info:"Homeostasis keeps internal conditions stable." }
+    ]
+  },
+
+  chemistry: {
+    1: [
+      { q:"Water formula?", options:["H2O","CO2","O2","H2"], answer:0, tip:"Two H, one O.", info:"H₂O is water." },
+      { q:"Electron charge?", options:["Positive","Neutral","Negative","Depends"], answer:2, tip:"Opposite of proton.", info:"Electrons are negatively charged." },
+      { q:"Subatomic particle with no charge?", options:["Proton","Electron","Neutron","Ion"], answer:2, tip:"Inside nucleus.", info:"Neutrons are uncharged." },
+      { q:"pH neutral value?", options:["0","7","14","1"], answer:1, tip:"Neutral solution.", info:"Pure water has pH 7." },
+      { q:"Ionic bond involves?", options:["Sharing electrons","Transferring electrons","Metallic bonding","Hydrogen bonding"], answer:1, tip:"Give/take electrons.", info:"Ionic bonds transfer electrons." }
+    ],
+    2: [
+      { q:"Avogadro's number?", options:["6.02×10²³","3.14","1.60×10⁻¹⁹","9.81"], answer:0, tip:"Count particles in a mole.", info:"~6.022×10²³ particles in one mole." },
+      { q:"Covalent bond?", options:["Share electrons","Transfer electrons","Metallic","Hydrogen"], answer:0, tip:"Sharing electrons.", info:"Atoms share electrons in covalent bonds." },
+      { q:"Reaction of acid with metal releases?", options:["Oxygen","Hydrogen","Nitrogen","Helium"], answer:1, tip:"Light gas.", info:"Releases hydrogen gas." },
+      { q:"Symbol of Sodium?", options:["S","Na","So","N"], answer:1, tip:"Latin name.", info:"Na comes from 'Natrium'." },
+      { q:"Which phase change is liquid to gas?", options:["Condensation","Freezing","Evaporation","Melting"], answer:2, tip:"Heat required.", info:"Evaporation converts liquid to gas." }
+    ],
+    3: [
+      { q:"pH < 7 indicates?", options:["Base","Acid","Neutral","Salt"], answer:1, tip:"Less than 7.", info:"Acidic solutions have pH below 7." },
+      { q:"pH > 7 indicates?", options:["Base","Acid","Neutral","Salt"], answer:0, tip:"More than 7.", info:"Basic solutions have pH above 7." },
+      { q:"Electrons in outer shell?", options:["Valence electrons","Neutrons","Protons","Cations"], answer:0, tip:"Determine bonding.", info:"Valence electrons are outer shell electrons." },
+      { q:"Mass number = ?", options:["Protons + Neutrons","Protons + Electrons","Neutrons + Electrons","All particles"], answer:0, tip:"Sum of particles in nucleus.", info:"Mass number = protons + neutrons." },
+      { q:"Which is solvent in saltwater?", options:["Salt","Water","Both","None"], answer:1, tip:"Liquid dissolves solute.", info:"Water is the solvent." }
+    ]
+  },
+
+  math: {
+    1: [
+      { q:"5 + 7?", options:["11","12","13","10"], answer:1, tip:"Add simply.", info:"5 + 7 = 12." },
+      { q:"9 × 6?", options:["54","45","63","48"], answer:0, tip:"Multiply.", info:"9 × 6 = 54." },
+      { q:"√81?", options:["7","8","9","10"], answer:2, tip:"Square root.", info:"√81 = 9." },
+      { q:"15 ÷ 3?", options:["3","4","5","6"], answer:2, tip:"Divide.", info:"15 ÷ 3 = 5." },
+      { q:"10% of 200?", options:["20","10","2","40"], answer:0, tip:"Percent means per hundred.", info:"10% of 200 = 20." }
+    ],
+    2: [
+      { q:"Solve x: 2x = 10", options:["5","10","2","8"], answer:0, tip:"Divide by 2.", info:"x = 5." },
+      { q:"x + 4 = 10", options:["6","4","10","14"], answer:0, tip:"Subtract 4.", info:"x = 6." },
+      { q:"3² = ?", options:["6","9","12","8"], answer:1, tip:"Number × itself.", info:"3² = 9." },
+      { q:"Next in 2,4,6,8…?", options:["9","10","11","12"], answer:1, tip:"+2 pattern.", info:"Next number is 10." },
+      { q:"5 × 7?", options:["35","25","30","40"], answer:0, tip:"Multiply.", info:"5 × 7 = 35." }
+    ],
+    3: [
+      { q:"Square root of 144?", options:["11","12","14","16"], answer:1, tip:"√144 = ?", info:"12 × 12 = 144." },
+      { q:"12 ÷ 4?", options:["3","4","2","6"], answer:0, tip:"Divide.", info:"12 ÷ 4 = 3." },
+      { q:"7 + 8?", options:["14","15","16","13"], answer:1, tip:"Add.", info:"7 + 8 = 15." },
+      { q:"9 × 9?", options:["81","72","90","99"], answer:0, tip:"Square.", info:"9 × 9 = 81." },
+      { q:"20% of 50?", options:["5","10","15","20"], answer:1, tip:"20 per 100.", info:"20% of 50 = 10." }
+    ]
+  }
+};
+
+// Variables
+let currentSubject=null, currentLevel=1, currentExercises=[], currentIndex=0, score=0;
+
+function startSubject(subject){
+  currentSubject=subject;
+  document.body.style.background = subject==='biology'?"linear-gradient(135deg, #e3f2fd, #90caf9)":
+                                    subject==='chemistry'?"linear-gradient(135deg,#ffebee,#ffcdd2)":
+                                    "linear-gradient(135deg,#e8f5e9,#a5d6a7)";
+  currentLevel=1;
+  loadLevel();
+}
+
+function loadLevel(){
+  currentExercises = questions[currentSubject][currentLevel];
+  currentIndex=0; score=0;
+  showExercise();
+}
+
+function showExercise(){
+  const ex=currentExercises[currentIndex];
+  const main=document.getElementById('main');
+  main.innerHTML=`
+    <div class="exercise">
+      <strong>${currentSubject.charAt(0).toUpperCase()+currentSubject.slice(1)} – Level ${currentLevel}, Q${currentIndex+1}</strong>
+      <p>${ex.q}</p>
+      <div class="options">
+        ${ex.options.map((opt,i)=> `<div class="option" onclick="checkAnswer(this,${i},${ex.answer})">${opt}</div>`).join('')}
+      </div>
+      <button onclick="showTip(this)">Show Tip</button>
+      <div class="tip">${ex.tip}</div>
+      <div class="feedback" id="feedback"></div>
+      <div class="progress">Question ${currentIndex+1} of ${currentExercises.length}</div>
+      <button id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+    </div>
+  `;
+}
+
+function checkAnswer(optionDiv, selected, correct){
+  const feedback=document.getElementById('feedback');
+  const ex=currentExercises[currentIndex];
+  if(selected===correct){
+    optionDiv.classList.add('correct');
+    feedback.innerHTML=`✅ Correct!<br><em>${ex.info}</em>`;
+    createConfetti();
+    score++;
+  } else {
+    optionDiv.classList.add('wrong');
+    feedback.innerHTML=`❌ Wrong!<br><em>${ex.info}</em>`;
+  }
+  optionDiv.parentElement.querySelectorAll('.option').forEach(o=>o.style.pointerEvents='none');
+  document.getElementById('nextBtn').disabled=false;
+}
+
+function showTip(btn){
+  const tipDiv=btn.nextElementSibling;
+  tipDiv.style.display = tipDiv.style.display==='none'?'block':'none';
+}
+
+function nextQuestion(){
+  currentIndex++;
+  if(currentIndex<currentExercises.length) showExercise();
+  else finishLevel();
+}
+
+function finishLevel(){
+  const main=document.getElementById('main');
+  const total=currentExercises.length;
+  let badge="";
+  if(score===total) badge="🏆 Perfect Star!";
+  else if(score>=Math.ceil(total*0.8)) badge="⭐ Great Job!";
+  else if(score>=Math.ceil(total*0.5)) badge="✨ Good Work!";
+  else badge="💪 Keep Practicing!";
+  main.innerHTML=`
+    <div class="exercise">
+      <h2>${currentSubject.charAt(0).toUpperCase()+currentSubject.slice(1)} – Level ${currentLevel} Completed!</h2>
+      <p>Your score: ${score} / ${total}</p>
+      <div class="badge">${badge}</div>
+      <button onclick="nextLevel()">Next Level</button>
+      <button onclick="restart()">Restart ${currentSubject}</button>
+      <button onclick="location.reload()">Back to Home</button>
+    </div>
+  `;
+}
+
+function nextLevel(){
+  if(questions[currentSubject][currentLevel+1]){
+    currentLevel++;
+    loadLevel();
+  } else alert("🎉 You've completed all available levels! More coming soon!");
+}
+
+function restart(){ currentLevel=1; loadLevel(); }
+
+function createConfetti(){
+  for(let i=0;i<15;i++){
+    const conf=document.createElement('div');
+    conf.className='confetti-piece';
+    conf.style.left=Math.random()*window.innerWidth+'px';
+    conf.style.background=`hsl(${Math.random()*360},100%,50%)`;
+    document.body.appendChild(conf);
+    setTimeout(()=>conf.remove(),1000);
+  }
+}
+</script>
+</body>
+</html>
